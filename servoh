@@ -1,0 +1,63 @@
+#include <Servo.h>
+Servo myservo;
+
+int servoPin = 9;            // порт подключения сервы
+int myAngle = 0;             // будет хранить угол поворота
+int pulseWidth;              // длительность импульса
+int detectorAnalogOut = A0;
+int maximum = 10;
+int counter = 0;
+int currentAngle = 10;
+bool working = false;
+bool moving = false;
+ 
+void servoPulse(int servoPin, int myAngle) 
+{
+  pulseWidth = (myAngle * 11) + 500;  // конвертируем угол в микросекунды
+  digitalWrite(servoPin, HIGH);       // устанавливаем серве высокий уровень
+  delayMicroseconds(pulseWidth);      // ждём
+  digitalWrite(servoPin, LOW);        // устанавливаем низкий уровень
+  delay(20);                          // 
+}
+
+void setup() 
+{
+  //pinMode(servoPin, OUTPUT);
+  //servoPulse(servoPin, 10);
+  myservo.attach(9);
+  myservo.write(0);
+}
+
+void loop() 
+{
+  if(!moving && working){
+    counter++;
+    delay(100);
+  }
+  if(counter > 100){
+    counter = 0;
+    maximum = 0;
+    currentAngle = 0;
+    //servoPulse(servoPin, 10);
+    myservo.write(0);
+    moving = false;
+    working = false;
+  }
+  myAngle = analogRead(detectorAnalogOut);
+  myAngle = map(myAngle, 0, 1023, 0, 180);
+  if(myAngle < 22){
+    myAngle = 0;
+  }
+  if(myAngle > maximum){ //&& myAngle > 30
+    maximum = myAngle;
+    working = true;
+  }
+  if(currentAngle < maximum){
+    counter = 0;
+    moving = true;
+    //servoPulse(servoPin, ++currentAngle);
+    myservo.write(++currentAngle);
+  }else{
+    moving = false;
+  }
+} 
